@@ -7,7 +7,7 @@
 <% when 'mysql' -%>
 production:
   adapter: mysql2
-  database: redmine
+  database: <%= node[:redmine][:db][:dbname] %>
   host: <%= @database_server %>
   username: <%= node[:redmine][:db][:username] %>
   password: <%= node[:redmine][:db][:password] %>
@@ -19,7 +19,7 @@ production:
 <% when 'postgresql' -%>
 production:
   adapter: postgresql
-  database: redmine
+  database: <%= node[:redmine][:db][:dbname] %>
   host: <%= @database_server %>
   username: <%= node[:redmine][:db][:username] %>
   password: <%= node[:redmine][:db][:password] %>

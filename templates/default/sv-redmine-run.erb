@@ -9,4 +9,4 @@ TARGET_RUBY=<%= @options[:target_ruby] %>
 export rvm_ignore_rvmrc=1
 
 cd $APP_PATH
-exec sudo -u $TARGET_USER RAILS_ENV="<%= @options[:target_env] %>" <%= @options[:rbenv_shims] %>/ruby script/rails s thin -p 3000
+exec sudo -u $TARGET_USER RAILS_ENV="<%= @options[:target_env] %>" ruby script/rails s thin -p 3000

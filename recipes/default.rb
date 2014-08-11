@@ -32,30 +32,30 @@ directory node[:redmine][:home] do
   mode '0755'
 end
 
-# Install ruby with rbenv
-node.default['rbenv']['user_installs'] = [
-    {
-        user: node[:redmine][:user],
-        rubies: [node[:redmine][:ruby_version]],
-        global: node[:redmine][:ruby_version],
-        gems: {
-            node[:redmine][:ruby_version] => [
-                { name: 'bundler' },
-                { name: 'rake' }
-            ]
-        }
-    }
-]
-
-include_recipe 'ruby_build'
-include_recipe 'rbenv::user'
+# # Install ruby with rbenv
+# node.default['rbenv']['user_installs'] = [
+#     {
+#         user: node[:redmine][:user],
+#         rubies: [node[:redmine][:ruby_version]],
+#         global: node[:redmine][:ruby_version],
+#         gems: {
+#             node[:redmine][:ruby_version] => [
+#                 { name: 'bundler' },
+#                 { name: 'rake' }
+#             ]
+#         }
+#     }
+# ]
+#
+# include_recipe 'ruby_build'
+# include_recipe 'rbenv::user'
 
 # Download archive with source code
 bash 'install_redmine' do
   cwd node[:redmine][:home]
   user node[:redmine][:user]
   code <<-EOH
-    wget http://www.redmine.org/releases/redmine-#{node[:redmine][:version]}.tar.gz;
+    wget -O redmine-#{node[:redmine][:version]}.tar.gz https://github.com/redmine/redmine/archive/#{node[:redmine][:version]}.tar.gz;
     tar -xzf redmine-#{node[:redmine][:version]}.tar.gz
   EOH
   not_if { ::File.exists?("#{node[:redmine][:home]}/redmine-#{node[:redmine][:version]}/Rakefile") }
@@ -98,8 +98,8 @@ template "#{node[:redmine][:home]}/redmine-#{node[:redmine][:version]}/Gemfile.l
   mode '0664'
 end
 
-bundle_command = "#{node[:redmine][:home]}/.rbenv/shims/bundle"
-rake_command = "#{node[:redmine][:home]}/.rbenv/shims/rake"
+bundle_command = "bundle"
+rake_command = "rake"
 bundle_install_command = case node[:redmine][:db][:type]
   when 'sqlite'
     "#{bundle_command} install --without development test mysql postgresql rmagick"
@@ -110,7 +110,6 @@ bundle_install_command = case node[:redmine][:db][:type]
 end
 
 execute bundle_install_command do
-  user node[:redmine][:user]
   cwd "#{node[:redmine][:home]}/redmine-#{node[:redmine][:version]}"
   not_if { ::File.exists?("#{node[:redmine][:home]}redmine-#{node[:redmine][:version]}/db/schema.rb") }
 end
@@ -135,7 +134,6 @@ runit_service 'redmine' do
   options(home_path:   node[:redmine][:home],
           app_path:    "#{node[:redmine][:home]}/redmine",
           target_user: node[:redmine][:user],
-          rbenv_shims: "#{node[:redmine][:home]}/.rbenv/shims",
           target_env:  'production')
 end
 
