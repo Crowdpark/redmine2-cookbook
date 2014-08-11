@@ -32,40 +32,30 @@ directory node[:redmine][:home] do
   mode '0755'
 end
 
-# # Install ruby with rbenv
-# node.default['rbenv']['user_installs'] = [
-#     {
-#         user: node[:redmine][:user],
-#         rubies: [node[:redmine][:ruby_version]],
-#         global: node[:redmine][:ruby_version],
-#         gems: {
-#             node[:redmine][:ruby_version] => [
-#                 { name: 'bundler' },
-#                 { name: 'rake' }
-#             ]
-#         }
-#     }
-# ]
-#
-# include_recipe 'ruby_build'
-# include_recipe 'rbenv::user'
-
 # Download archive with source code
-bash 'install_redmine' do
+bash "downloading redmine #{node[:redmine][:version]}" do
   cwd node[:redmine][:home]
   user node[:redmine][:user]
   code <<-EOH
     wget -O redmine-#{node[:redmine][:version]}.tar.gz https://github.com/redmine/redmine/archive/#{node[:redmine][:version]}.tar.gz;
+  EOH
+  not_if { ::File.exists?("#{node[:redmine][:home]}/redmine-#{node[:redmine][:version]}.tar.gz") }
+end
+
+bash "installing redmine #{node[:redmine][:version]}" do
+  cwd node[:redmine][:home]
+  user node[:redmine][:user]
+  code <<-EOH
     tar -xzf redmine-#{node[:redmine][:version]}.tar.gz
   EOH
-  not_if { ::File.exists?("#{node[:redmine][:home]}/redmine-#{node[:redmine][:version]}/Rakefile") }
+  not_if { ::File.exists?("#{node[:redmine][:home]}/redmine-#{node[:redmine][:version]}") }
 end
 
 link "#{node[:redmine][:home]}/redmine" do
   to "#{node[:redmine][:home]}/redmine-#{node[:redmine][:version]}"
 end
 
-# Create database
+# setup database
 case node[:redmine][:db][:type]
   when 'sqlite'
     include_recipe 'redmine2::sqlite'
